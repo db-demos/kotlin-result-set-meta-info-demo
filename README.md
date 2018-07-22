@@ -1,6 +1,6 @@
-Kotlin H2 Database Demo
-=======================
+Get Jdbc ResultSet Column Names Demo
+====================================
 
-Create table and query it in H2.
+Use h2 database for demo.
 
-In `Hello.kt` file.
+See `Hello.kt` file and run it.
