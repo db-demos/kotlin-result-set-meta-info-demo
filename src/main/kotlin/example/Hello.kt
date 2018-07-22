@@ -1,6 +1,7 @@
 package example
 
 import java.sql.DriverManager
+import java.sql.ResultSet
 
 private val DBNAME = "mydb"
 
@@ -21,12 +22,25 @@ fun main(args: Array<String>) {
 
         conn.createStatement().use { stmt ->
             val rs = stmt.executeQuery("select * from mytbl")
+            val columnNames = getColumnNames(rs)
+
+            columnNames.forEach { name -> print("$name\t") }
+            println()
+
             while (rs.next()) {
-                println("> " + rs.getString("name"))
+                columnNames.forEach { name ->
+                    print(rs.getObject(name).toString() + "\t")
+                }
+                println()
             }
         }
     }
 
+}
+
+private fun getColumnNames(rs: ResultSet): List<String> {
+    val metaData = rs.metaData
+    return (1..metaData.columnCount).map { metaData.getColumnName(it) }.toList()
 }
 
 fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
