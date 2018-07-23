@@ -4,12 +4,10 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
 
-private val DBNAME = "mydb"
-
 fun main(args: Array<String>) {
     Class.forName("org.h2.Driver")
 
-    val conn = DriverManager.getConnection("jdbc:h2:mem:$DBNAME", "sa", "sa") // (2)
+    val conn = DriverManager.getConnection("jdbc:h2:mem:mydb", "sa", "sa") // (2)
 
     conn.use {
 
@@ -31,23 +29,18 @@ fun main(args: Array<String>) {
 private fun printColumnNames(conn: Connection) {
     conn.createStatement().use { stmt ->
         val rs = stmt.executeQuery("select * from users")
-
-        getColumnNames(rs).forEach { name -> print("$name\t") }.also {
-            println()
-        }
-
-        printRsRows(rs, getColumnNames(rs))
+        val columnNames = getColumnNames(rs)
+        columnNames.forEach { name -> print("$name\t") }.also { println() }
+        printRsRows(rs, columnNames)
     }
 }
 
 private fun printAliasNames(conn: Connection) {
     conn.createStatement().use { stmt ->
         val rs = stmt.executeQuery("select id as id_alias, name as name_alias from users")
-        getColumnAliasNames(rs).forEach { name -> print("$name\t") }.also {
-            println()
-        }
-
-        printRsRows(rs, getColumnAliasNames(rs))
+        val aliasNames = getColumnAliasNames(rs)
+        aliasNames.forEach { name -> print("$name\t") }.also { println() }
+        printRsRows(rs, aliasNames)
     }
 }
 
