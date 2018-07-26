@@ -1,6 +1,11 @@
-Get Jdbc ResultSet Column Names Demo
-====================================
+Get Jdbc ResultSet Meta Info Demo
+=================================
 
-Use h2 database for demo, get columeName and displayName(alias name) from `ResultSet`.
+Get column meta info from ResultSet, for now, I get:
+
+- column name
+- display name
+- type
+- required(non-null)
 
 See `Hello.kt` file and run it.

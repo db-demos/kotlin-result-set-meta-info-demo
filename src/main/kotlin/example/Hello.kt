@@ -3,6 +3,7 @@ package example
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
+import java.sql.ResultSetMetaData
 
 fun main(args: Array<String>) {
     Class.forName("org.h2.Driver")
@@ -19,48 +20,45 @@ fun main(args: Array<String>) {
             }
         }
 
-        printColumnNames(conn)
-
-        printAliasNames(conn)
+        printData(conn)
     }
-
 }
 
-private fun printColumnNames(conn: Connection) {
+private fun printData(conn: Connection) {
     conn.createStatement().use { stmt ->
-        val rs = stmt.executeQuery("select * from users")
-        val columnNames = getColumnNames(rs)
-        columnNames.forEach { name -> print("$name\t") }.also { println() }
-        printRsRows(rs, columnNames)
+        val rs = stmt.executeQuery("select id, name as name_alias from users")
+        val meta = getColumnMeta(rs)
+        meta.forEach { column -> print("%30s".format("column-name: ${column.columnName}")) }.also { println() }
+        meta.forEach { column -> print("%30s".format("display-name: ${column.displayName}")) }.also { println() }
+        meta.forEach { column -> print("%30s".format("type: ${column.type}")) }.also { println() }
+        meta.forEach { column -> print("%30s".format("required: ${column.required}")) }.also { println() }
+        println("============================================================")
+        printRows(rs)
     }
 }
 
-private fun printAliasNames(conn: Connection) {
-    conn.createStatement().use { stmt ->
-        val rs = stmt.executeQuery("select id as id_alias, name as name_alias from users")
-        val aliasNames = getColumnAliasNames(rs)
-        aliasNames.forEach { name -> print("$name\t") }.also { println() }
-        printRsRows(rs, aliasNames)
-    }
-}
-
-private fun printRsRows(rs: ResultSet, columnNames: List<String>) {
+private fun printRows(rs: ResultSet) {
     while (rs.next()) {
-        columnNames.forEach { name ->
-            print(rs.getObject(name).toString() + "\t")
+        (1..rs.metaData.columnCount).forEach { index ->
+            print("%30s".format(rs.getObject(index).toString()))
         }
         println()
     }
 }
 
-private fun getColumnNames(rs: ResultSet): List<String> {
-    val metaData = rs.metaData
-    return (1..metaData.columnCount).map { metaData.getColumnName(it) }.toList()
-}
+// type: `java.sql.Types`
+data class ColumnMeta(val columnName: String, val displayName: String, val type: Int, val required: Boolean)
 
-private fun getColumnAliasNames(rs: ResultSet): List<String> {
+private fun getColumnMeta(rs: ResultSet): List<ColumnMeta> {
     val metaData = rs.metaData
-    return (1..metaData.columnCount).map { metaData.getColumnLabel(it) }.toList()
+    return (1..metaData.columnCount).map { index ->
+        ColumnMeta(
+                columnName = metaData.getColumnName(index),
+                displayName = metaData.getColumnLabel(index),
+                type = metaData.getColumnType(index),
+                required = metaData.isNullable(index) == ResultSetMetaData.columnNoNulls
+        )
+    }.toList()
 }
 
 fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
